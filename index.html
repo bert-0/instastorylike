@@ -30,10 +30,9 @@
 <body class="bg-gray-900 flex items-center justify-center min-h-screen font-sans">
 
     <!-- Container principal que simula a tela de um celular -->
-    <!-- NOVO: Adicionado 'overflow-hidden' para esconder o conteúdo que vaza durante o arraste -->
     <main id="story-container" class="relative w-full max-w-md aspect-[9/16] bg-black rounded-xl shadow-2xl overflow-hidden select-none">
         
-        <!-- NOVO: Este wrapper agrupa TODO o conteúdo do story para que possa ser movido de uma vez -->
+        <!-- Este wrapper agrupa TODO o conteúdo do story para que possa ser movido de uma vez -->
         <div id="story-content-wrapper" class="relative w-full h-full">
 
             <!-- 1. Barras de Progresso (Topo) -->
@@ -192,9 +191,10 @@
                 clearTimeout(storyTimer);
                 likeIcon.classList.remove('liked');
 
-                // NOVO: Reseta a posição do wrapper para o caso de ter vindo de um swipe
+                // MUDANÇA: Reseta a posição E opacidade do wrapper
                 storyContentWrapper.style.transition = 'none'; // Sem animação
                 storyContentWrapper.style.transform = 'translateX(0px)'; // Posição inicial
+                storyContentWrapper.style.opacity = '1'; // Garante opacidade total
 
                 const userData = allUsersData[currentUserIndex];
                 
@@ -304,7 +304,6 @@
             function prevUser() {
                 const prevUserIndex = currentUserIndex - 1;
                 
-                // Se era o primeiro usuário, não volta (ou poderia dar a volta)
                 if (prevUserIndex < 0) {
                     showStory(0); // Apenas reinicia o primeiro story
                     return;
@@ -329,22 +328,18 @@
                 storyContentWrapper.style.transition = 'none'; // Tira a animação para seguir o dedo
 
                 // Adiciona os listeners de movimento e soltura NA JANELA
-                // para que o arraste funcione mesmo se o mouse sair do container
                 window.addEventListener('mousemove', onDragMove);
                 window.addEventListener('mouseup', onDragEnd);
                 
-                // passive: false é necessário para podermos chamar e.preventDefault() no onDragMove
                 window.addEventListener('touchmove', onDragMove, { passive: false });
                 window.addEventListener('touchend', onDragEnd);
             }
 
             function onDragMove(e) {
-                if (dragStartX === 0) return; // Não deveria acontecer, mas por segurança
-                
-                // Impede o scroll da página no celular enquanto arrasta o story
+                if (dragStartX === 0) return; 
                 e.preventDefault();
 
-                isDragging = true; // Agora é oficialmente um arraste
+                isDragging = true;
                 const currentX = e.clientX || e.touches[0].clientX;
                 dragDeltaX = currentX - dragStartX;
 
@@ -359,37 +354,41 @@
                 window.removeEventListener('touchmove', onDragMove);
                 window.removeEventListener('touchend', onDragEnd);
 
-                if (isPaused) { // Só faz algo se estávamos pausados
+                if (isPaused) { 
                     const pressDuration = Date.now() - pressStartTime;
-                    // Limite para decidir se foi um swipe
-                    const dragThreshold = storyContainer.offsetWidth / 3.5; 
+                    
+                    // MUDANÇA: Limite de arraste reduzido (20% da tela)
+                    const dragThreshold = storyContainer.offsetWidth / 5; 
 
-                    // Liga a animação de "snap" (voltar ao lugar ou sair da tela)
-                    storyContentWrapper.style.transition = 'transform 0.3s ease-out';
+                    // MUDANÇA: Animação de "snap" mais rápida e com opacidade
+                    storyContentWrapper.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out';
 
                     // CASO 1: FOI UM ARRASTE (SWIPE)
                     if (isDragging && Math.abs(dragDeltaX) > 20) {
                         
                         if (dragDeltaX > dragThreshold && currentUserIndex > 0) { // Swipe para Direita (Voltar)
                             storyContentWrapper.style.transform = 'translateX(100%)';
-                            setTimeout(prevUser, 300); // Carrega o usuário anterior após a animação
+                            storyContentWrapper.style.opacity = '0'; // Fade out
+                            setTimeout(prevUser, 250); // Timeout igual à animação
                         } 
                         else if (dragDeltaX < -dragThreshold && currentUserIndex < allUsersData.length - 1) { // Swipe para Esquerda (Avançar)
                             storyContentWrapper.style.transform = 'translateX(-100%)';
-                            setTimeout(nextUser, 300); // Carrega o próximo usuário após a animação
+                            storyContentWrapper.style.opacity = '0'; // Fade out
+                            setTimeout(nextUser, 250); // Timeout igual à animação
                         } 
                         else { // Arraste falhou (não foi longe o suficiente)
                             storyContentWrapper.style.transform = 'translateX(0px)';
+                            storyContentWrapper.style.opacity = '1'; // Garante que fica visível
                             resumeStory(); // Volta ao normal
                         }
 
                     } 
                     // CASO 2: FOI UM TOQUE RÁPIDO (SEM ARRASTAR)
                     else if (pressDuration < 200) {
-                        storyContentWrapper.style.transform = 'translateX(0px)'; // Garante que volte ao centro
+                        storyContentWrapper.style.transform = 'translateX(0px)';
+                        storyContentWrapper.style.opacity = '1'; // Garante que fica visível
                         
                         const rect = storyContainer.getBoundingClientRect();
-                        // Pega a posição X do clique (dragStartX é o ponto inicial do toque)
                         const tapPosition = (dragStartX - rect.left) / rect.width;
 
                         if (tapPosition < 0.33) {
@@ -401,6 +400,7 @@
                     // CASO 3: FOI UM "SEGURAR" (SEM ARRASTAR)
                     else {
                         storyContentWrapper.style.transform = 'translateX(0px)';
+                        storyContentWrapper.style.opacity = '1'; // Garante que fica visível
                         resumeStory(); // Apenas retoma o story
                     }
                 }
@@ -431,6 +431,9 @@
                 // Adiciona os event listeners de navegação (agora para o arraste)
                 storyContainer.addEventListener('mousedown', onDragStart);
                 storyContainer.addEventListener('touchstart', onDragStart, { passive: false });
+
+                // Impede o comportamento nativo de "arrastar imagem" do navegador no desktop
+                storyContainer.addEventListener('dragstart', (e) => e.preventDefault());
 
                 // --- INICIA TUDO ---
                 loadUserStories(0, 0);
