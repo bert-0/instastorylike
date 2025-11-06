@@ -12,212 +12,201 @@
             transition: width 0.1s linear;
         }
 
-        /* Novo estilo para o botão de curtir */
+        /* Estilo para o botão de curtir */
         #like-button-svg {
-            /* Transição suave para a cor */
             transition: all 0.2s ease-in-out;
         }
         #like-button-svg.liked {
-            /* Cor vermelha quando "curtido" */
             fill: #FF0000;
             stroke: #FF0000;
+        }
+
+        /* Garante que o toque/arraste seja suave */
+        body {
+            overscroll-behavior: none;
         }
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center min-h-screen font-sans">
 
     <!-- Container principal que simula a tela de um celular -->
+    <!-- NOVO: Adicionado 'overflow-hidden' para esconder o conteúdo que vaza durante o arraste -->
     <main id="story-container" class="relative w-full max-w-md aspect-[9/16] bg-black rounded-xl shadow-2xl overflow-hidden select-none">
         
-        <!-- 1. Barras de Progresso (Topo) -->
-        <header class="absolute top-2 left-2 right-2 z-30">
-            <div id="progress-bars" class="flex gap-1 w-full">
-                <!-- As barras de progresso serão injetadas aqui pelo JavaScript -->
+        <!-- NOVO: Este wrapper agrupa TODO o conteúdo do story para que possa ser movido de uma vez -->
+        <div id="story-content-wrapper" class="relative w-full h-full">
+
+            <!-- 1. Barras de Progresso (Topo) -->
+            <header class="absolute top-2 left-2 right-2 z-30">
+                <div id="progress-bars" class="flex gap-1 w-full">
+                    <!-- As barras de progresso serão injetadas aqui pelo JavaScript -->
+                </div>
+            </header>
+
+            <!-- 2. Informação do Usuário (Abaixo das barras) -->
+            <div id="story-header" class="absolute top-5 left-4 right-4 z-20 flex items-center gap-3 pt-2">
+                <img id="profile-pic" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white">
+                <span id="username" class="text-white font-bold text-sm"></span>
             </div>
-        </header>
 
-        <!-- 2. Informação do Usuário (Abaixo das barras) -->
-        <div id="story-header" class="absolute top-5 left-4 right-4 z-20 flex items-center gap-3 pt-2">
-            <img id="profile-pic" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white">
-            <span id="username" class="text-white font-bold text-sm"></span>
-        </div>
+            <!-- 3. Imagem Principal do Story -->
+            <img id="story-image" 
+                 src="" 
+                 alt="Story" 
+                 class="absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ease-in-out">
+            
+            <!-- 5. Gradiente de Sobreposição (Baixo) -->
+            <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-10 pointer-events-none"></div>
 
-        <!-- 3. Imagem Principal do Story -->
-        <img id="story-image" 
-             src="" 
-             alt="Story" 
-             class="absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ease-in-out">
+            <!-- 6. Barra de Interação (Baixo) -->
+            <footer class="absolute bottom-0 left-0 right-0 z-20 p-4 flex items-center gap-3">
+                
+                <div id="comment-bar" class="flex-1 border border-white/40 rounded-full px-4 py-2 cursor-pointer backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-colors">
+                    <span class="text-white/80 text-sm">Responder...</span>
+                </div>
+                
+                <button id="like-button" class="p-2 rounded-full active:bg-white/20">
+                    <svg id="like-button-svg" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                
+                <button id="send-button" class="p-2 rounded-full active:bg-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </footer>
         
-        <!-- 4. Controles de Navegação (Invisíveis) -->
-        <!-- O JavaScript cuidará da lógica de clique/toque e segurar -->
-
-        <!-- 5. Gradiente de Sobreposição (Baixo) -->
-        <!-- Este gradiente escurece a parte de baixo da imagem para que os ícones brancos fiquem visíveis -->
-        <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-10 pointer-events-none"></div>
-
-        <!-- 6. Barra de Interação (Baixo) - NOVO -->
-        <footer class="absolute bottom-0 left-0 right-0 z-20 p-4 flex items-center gap-3">
-            
-            <!-- Barra de Comentário (Enfeite) -->
-            <div id="comment-bar" class="flex-1 border border-white/40 rounded-full px-4 py-2 cursor-pointer backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-colors">
-                <!-- O backdrop-blur-sm e bg-white/10 dão o efeito transparente/fosco -->
-                <span class="text-white/80 text-sm">Responder a seu_usuario...</span>
-            </div>
-            
-            <!-- Botão de Curtir -->
-            <button id="like-button" class="p-2 rounded-full active:bg-white/20">
-                <!-- SVG do Coração -->
-                <svg id="like-button-svg" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-            </button>
-            
-            <!-- Botão de Enviar -->
-            <button id="send-button" class="p-2 rounded-full active:bg-white/20">
-                <!-- SVG do Avião de Papel -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
-        </footer>
+        </div> <!-- Fim do #story-content-wrapper -->
         
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- DADOS DOS STORIES ---
-            // Você pode substituir isso por suas próprias imagens e durações
-            const storyData = {
-                user: 'seu_usuario',
-                avatar: 'https://placehold.co/40x40/FFFFFF/000000?text=SU',
-                items: [
-                    { src: 'https://placehold.co/360x640/FF6347/FFFFFF?text=Foto+1', duration: 5000 },
-                    { src: 'https://placehold.co/360x640/4682B4/FFFFFF?text=Foto+2', duration: 5000 },
-                    { src: 'https://placehold.co/360x640/32CD32/FFFFFF?text=Foto+3', duration: 3000 }, // Duração menor
-                    { src: 'https://placehold.co/360x640/FFD700/FFFFFF?text=Foto+4', duration: 5000 }
-                ]
-            };
+            // --- DADOS DOS STORIES (LISTA DE USUÁRIOS) ---
+            const allUsersData = [
+                {
+                    user: 'seu_usuario',
+                    avatar: 'https://placehold.co/40x40/FFFFFF/000000?text=SU',
+                    items: [
+                        { src: 'https://placehold.co/360x640/FF6347/FFFFFF?text=Foto+1', duration: 5000 },
+                        { src: 'https://placehold.co/360x640/4682B4/FFFFFF?text=Foto+2', duration: 5000 },
+                    ]
+                },
+                {
+                    user: 'amigo_legal',
+                    avatar: 'https://placehold.co/40x40/0000FF/FFFFFF?text=AL',
+                    items: [
+                        { src: 'https://placehold.co/360x640/32CD32/FFFFFF?text=Story+Verde', duration: 3000 },
+                    ]
+                },
+                {
+                    user: 'outro_perfil',
+                    avatar: 'https://placehold.co/40x40/FF00FF/FFFFFF?text=OP',
+                    items: [
+                        { src: 'https://placehold.co/360x640/FFD700/FFFFFF?text=Story+Amarelo', duration: 5000 },
+                        { src: 'https://placehold.co/360x640/8A2BE2/FFFFFF?text=Story+Roxo', duration: 4000 },
+                        { src: 'https://placehold.co/360x640/A52A2A/FFFFFF?text=Story+Marrom', duration: 5000 },
+                    ]
+                }
+            ];
 
             // --- VARIÁVEIS DE ESTADO ---
+            let currentUserIndex = 0;
             let currentStoryIndex = 0;
-            let storyTimer; // Para o setTimeout que avança para o próximo story
+            let storyTimer;
             let isPaused = false;
             let pressStartTime = 0;
-            let allProgressFills = []; // Array para guardar as barras de progresso
+            let allProgressFills = [];
+            
+            // Novas variáveis para o arraste (swipe)
+            let isDragging = false;
+            let dragStartX = 0;
+            let dragDeltaX = 0;
 
             // --- ELEMENTOS DO DOM ---
             const storyContainer = document.getElementById('story-container');
+            const storyContentWrapper = document.getElementById('story-content-wrapper'); // O novo wrapper
             const progressBarsContainer = document.getElementById('progress-bars');
             const storyImage = document.getElementById('story-image');
             const profilePic = document.getElementById('profile-pic');
             const username = document.getElementById('username');
-            // Novos elementos da barra de interação
             const commentBar = document.getElementById('comment-bar');
             const likeButton = document.getElementById('like-button');
             const sendButton = document.getElementById('send-button');
             const likeIcon = document.getElementById('like-button-svg');
 
+            // --- FUNÇÕES DE AJUDA ---
 
-            // --- FUNÇÕES PRINCIPAIS ---
-
-            /**
-             * Impede a propagação de eventos (para não pausar o story)
-             * IMPORTANTE: Impede que clicar no botão de curtir pause o story.
-             */
             function stopPropagation(e) {
                 e.stopPropagation();
             }
 
-            /**
-             * Alterna o estado de "curtido" do botão de coração
-             */
             function toggleLike(e) {
-                stopPropagation(e); // Impede o clique de pausar/avançar
+                stopPropagation(e);
                 likeIcon.classList.toggle('liked');
             }
 
+            // --- FUNÇÕES PRINCIPAIS DE NAVEGAÇÃO ---
 
-            /**
-             * Inicializa o visualizador de stories
-             */
-            function init() {
-                // Configura as informações do usuário
-                profilePic.src = storyData.avatar;
-                username.textContent = storyData.user;
-                // Atualiza o nome na barra de comentário (opcional)
-                commentBar.querySelector('span').textContent = `Responder a ${storyData.user}...`;
+            function loadUserStories(userIndex, storyIndex = 0) {
+                // Validação de limites
+                if (userIndex < 0) {
+                    userIndex = 0;
+                }
+                if (userIndex >= allUsersData.length) {
+                    userIndex = 0; // Volta para o primeiro usuário (loop)
+                }
 
-                // Cria as barras de progresso
-                progressBarsContainer.innerHTML = ''; // Limpa barras existentes
-                storyData.items.forEach(() => {
+                currentUserIndex = userIndex;
+                const userData = allUsersData[currentUserIndex];
+
+                // 1. Atualiza informações do usuário
+                profilePic.src = userData.avatar;
+                username.textContent = userData.user;
+                commentBar.querySelector('span').textContent = `Responder a ${userData.user}...`;
+
+                // 2. Reconstrói as barras de progresso
+                progressBarsContainer.innerHTML = '';
+                userData.items.forEach(() => {
                     const barContainer = document.createElement('div');
                     barContainer.className = 'flex-1 h-1 bg-white/30 rounded-full overflow-hidden';
-                    
                     const fill = document.createElement('div');
                     fill.className = 'progress-fill h-full bg-white w-0';
-                    
                     barContainer.appendChild(fill);
                     progressBarsContainer.appendChild(barContainer);
                 });
                 
-                // Seleciona todas as barras de preenchimento recém-criadas
                 allProgressFills = document.querySelectorAll('.progress-fill');
 
-                // Adiciona os event listeners para interação (Navegação)
-                storyContainer.addEventListener('mousedown', handlePress);
-                storyContainer.addEventListener('mouseup', handleRelease);
-                storyContainer.addEventListener('mouseleave', handleRelease); // Caso o mouse saia da tela
-                
-                storyContainer.addEventListener('touchstart', handlePress, { passive: true });
-                storyContainer.addEventListener('touchend', handleRelease);
-
-                // Adiciona listeners para a nova barra de interação
-                likeButton.addEventListener('click', toggleLike);
-            
-                // Impede que o clique/toque nos botões e barra de comentário pause o story
-                commentBar.addEventListener('mousedown', stopPropagation);
-                commentBar.addEventListener('touchstart', stopPropagation, { passive: true });
-                
-                likeButton.addEventListener('mousedown', stopPropagation);
-                likeButton.addEventListener('touchstart', stopPropagation, { passive: true });
-                
-                sendButton.addEventListener('mousedown', stopPropagation);
-                sendButton.addEventListener('touchstart', stopPropagation, { passive: true });
-                
-                // Adiciona um listener de clique simples para o botão de enviar (apenas para exemplo)
-                sendButton.addEventListener('click', (e) => {
-                    stopPropagation(e);
-                    console.log('Botão Enviar clicado');
-                    // Aqui você poderia abrir um modal de compartilhamento, etc.
-                });
-
-                // Mostra o primeiro story
-                showStory(0);
+                // 3. Mostra o story de início
+                showStory(storyIndex);
             }
 
-            /**
-             * Mostra um story específico pelo seu índice
-             */
-            function showStory(index) {
-                // Validação de limites
-                if (index < 0) {
-                    index = 0; // Não volta antes do primeiro
-                }
-                if (index >= storyData.items.length) {
-                    // Se chegou ao fim, reinicia (ou poderia fechar)
-                    index = 0; 
-                }
-
-                currentStoryIndex = index;
+            function showStory(storyIndex) {
+                currentStoryIndex = storyIndex;
                 isPaused = false;
-                clearTimeout(storyTimer); // Limpa o timer anterior
-                likeIcon.classList.remove('liked'); // Reseta o botão de curtir
+                clearTimeout(storyTimer);
+                likeIcon.classList.remove('liked');
 
-                const item = storyData.items[currentStoryIndex];
+                // NOVO: Reseta a posição do wrapper para o caso de ter vindo de um swipe
+                storyContentWrapper.style.transition = 'none'; // Sem animação
+                storyContentWrapper.style.transform = 'translateX(0px)'; // Posição inicial
 
-                // 1. Atualiza a imagem (com pré-carregamento)
+                const userData = allUsersData[currentUserIndex];
+                
+                if (!userData || !userData.items[currentStoryIndex]) {
+                    console.error("Story não encontrado.");
+                    nextUser();
+                    return;
+                }
+                
+                const item = userData.items[currentStoryIndex];
+
+                // 1. Atualiza a imagem
                 storyImage.style.opacity = '0.5';
                 const img = new Image();
                 img.onload = () => {
@@ -236,55 +225,40 @@
                 img.src = item.src;
             }
 
-            /**
-             * Atualiza visualmente todas as barras de progresso
-             */
             function updateProgressBars() {
                 allProgressFills.forEach((fill, i) => {
-                    fill.style.transition = 'none'; // Remove transição para mudança instantânea
+                    fill.style.transition = 'none';
                     if (i < currentStoryIndex) {
-                        fill.style.width = '100%'; // Preenche barras passadas
+                        fill.style.width = '100%';
                     } else {
-                        fill.style.width = '0%'; // Limpa barras futuras e a atual
+                        fill.style.width = '0%';
                     }
                 });
             }
 
-            /**
-             * Inicia a animação da barra de progresso atual
-             */
             function startProgressBarAnimation(duration) {
                 const currentFill = allProgressFills[currentStoryIndex];
                 if (!currentFill) return;
 
-                // Força um reflow para garantir que a transição funcione
-                void currentFill.offsetWidth; 
+                void currentFill.offsetWidth; // Força reflow
 
-                // Adiciona a transição CSS linear
                 currentFill.style.transition = `width ${duration}ms linear`;
                 currentFill.style.width = '100%';
             }
             
-            /**
-             * Pausa o story (para de avançar e congela a barra)
-             */
             function pauseStory() {
                 if (isPaused) return;
                 isPaused = true;
-                clearTimeout(storyTimer); // Para o timer do próximo story
+                clearTimeout(storyTimer);
 
                 const currentFill = allProgressFills[currentStoryIndex];
                 if (!currentFill) return;
 
-                // Pega a largura atual da barra e a congela
                 const computedWidth = getComputedStyle(currentFill).width;
-                currentFill.style.transition = 'none'; // Remove a transição
-                currentFill.style.width = computedWidth; // Define a largura fixa
+                currentFill.style.transition = 'none';
+                currentFill.style.width = computedWidth;
             }
 
-            /**
-             * Retoma o story de onde parou
-             */
             function resumeStory() {
                 if (!isPaused) return;
                 isPaused = false;
@@ -293,76 +267,178 @@
                 if (!currentFill) return;
 
                 const currentWidthPercent = parseFloat(currentFill.style.width) || 0;
-                const fullDuration = storyData.items[currentStoryIndex].duration;
+                const fullDuration = allUsersData[currentUserIndex].items[currentStoryIndex].duration;
                 
-                // Calcula o tempo restante
                 const remainingDuration = fullDuration * (1 - (currentWidthPercent / 100));
 
-                // Reinicia a transição CSS
                 currentFill.style.transition = `width ${remainingDuration}ms linear`;
                 currentFill.style.width = '100%';
 
-                // Reinicia o timer para o próximo story
                 storyTimer = setTimeout(nextStory, remainingDuration);
             }
 
-            /**
-             * Funções de navegação
-             */
+            // --- Funções de Navegação (Nível Story e Usuário) ---
+
             function nextStory() {
-                showStory(currentStoryIndex + 1);
-            }
-
-            function prevStory() {
-                showStory(currentStoryIndex - 1);
-            }
-
-            // --- HANDLERS DE EVENTO (Lógica de Toque/Clique) ---
-
-            /**
-             * Chamado ao pressionar (mousedown/touchstart)
-             */
-            function handlePress(e) {
-                pressStartTime = Date.now();
-                pauseStory();
-            }
-
-            /**
-             * Chamado ao soltar (mouseup/touchend/mouseleave)
-             */
-            function handleRelease(e) {
-                if (!isPaused) return; // Só faz algo se estava pausado
-
-                const pressDuration = Date.now() - pressStartTime;
-
-                if (pressDuration < 200) { // Foi um "toque" rápido
-                    // Determina o lado do toque
-                    const rect = storyContainer.getBoundingClientRect();
-                    // 'e.clientX' para mouse, 'e.changedTouches' para toque
-                    const clickX = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
-                    
-                    if (clickX === undefined) {
-                        resumeStory(); // Caso de mouseleave, apenas retoma
-                        return;
-                    }
-
-                    const tapPosition = (clickX - rect.left) / rect.width;
-
-                    if (tapPosition < 0.33) { // Toque no terço esquerdo
-                        prevStory();
-                    } else { // Toque no meio ou direita
-                        nextStory();
-                    }
-                } else { // Foi um "segurar" (press and hold)
-                    resumeStory(); // Apenas retoma o story
+                const currentUserData = allUsersData[currentUserIndex];
+                
+                if (currentStoryIndex + 1 < currentUserData.items.length) {
+                    showStory(currentStoryIndex + 1);
+                } else {
+                    nextUser();
                 }
             }
 
-            // --- INICIA TUDO ---
+            function prevStory() {
+                if (currentStoryIndex - 1 >= 0) {
+                    showStory(currentStoryIndex - 1);
+                } else {
+                    prevUser();
+                }
+            }
+            
+            function nextUser() {
+                loadUserStories(currentUserIndex + 1, 0);
+            }
+            
+            function prevUser() {
+                const prevUserIndex = currentUserIndex - 1;
+                
+                // Se era o primeiro usuário, não volta (ou poderia dar a volta)
+                if (prevUserIndex < 0) {
+                    showStory(0); // Apenas reinicia o primeiro story
+                    return;
+                }
+                
+                const prevUserData = allUsersData[prevUserIndex];
+                const lastStoryIndex = prevUserData.items.length - 1;
+                
+                loadUserStories(prevUserIndex, lastStoryIndex);
+            }
+
+            // --- NOVOS HANDLERS DE EVENTO (Lógica de Toque/Arraste/Segurar) ---
+
+            function onDragStart(e) {
+                pauseStory(); // Sempre pausa ao tocar
+                
+                dragStartX = e.clientX || e.touches[0].clientX;
+                pressStartTime = Date.now();
+                isDragging = false; // Ainda não sabemos se é um arraste
+                dragDeltaX = 0;
+                
+                storyContentWrapper.style.transition = 'none'; // Tira a animação para seguir o dedo
+
+                // Adiciona os listeners de movimento e soltura NA JANELA
+                // para que o arraste funcione mesmo se o mouse sair do container
+                window.addEventListener('mousemove', onDragMove);
+                window.addEventListener('mouseup', onDragEnd);
+                
+                // passive: false é necessário para podermos chamar e.preventDefault() no onDragMove
+                window.addEventListener('touchmove', onDragMove, { passive: false });
+                window.addEventListener('touchend', onDragEnd);
+            }
+
+            function onDragMove(e) {
+                if (dragStartX === 0) return; // Não deveria acontecer, mas por segurança
+                
+                // Impede o scroll da página no celular enquanto arrasta o story
+                e.preventDefault();
+
+                isDragging = true; // Agora é oficialmente um arraste
+                const currentX = e.clientX || e.touches[0].clientX;
+                dragDeltaX = currentX - dragStartX;
+
+                // Move o wrapper junto com o dedo
+                storyContentWrapper.style.transform = `translateX(${dragDeltaX}px)`;
+            }
+
+            function onDragEnd(e) {
+                // Remove os listeners da janela
+                window.removeEventListener('mousemove', onDragMove);
+                window.removeEventListener('mouseup', onDragEnd);
+                window.removeEventListener('touchmove', onDragMove);
+                window.removeEventListener('touchend', onDragEnd);
+
+                if (isPaused) { // Só faz algo se estávamos pausados
+                    const pressDuration = Date.now() - pressStartTime;
+                    // Limite para decidir se foi um swipe
+                    const dragThreshold = storyContainer.offsetWidth / 3.5; 
+
+                    // Liga a animação de "snap" (voltar ao lugar ou sair da tela)
+                    storyContentWrapper.style.transition = 'transform 0.3s ease-out';
+
+                    // CASO 1: FOI UM ARRASTE (SWIPE)
+                    if (isDragging && Math.abs(dragDeltaX) > 20) {
+                        
+                        if (dragDeltaX > dragThreshold && currentUserIndex > 0) { // Swipe para Direita (Voltar)
+                            storyContentWrapper.style.transform = 'translateX(100%)';
+                            setTimeout(prevUser, 300); // Carrega o usuário anterior após a animação
+                        } 
+                        else if (dragDeltaX < -dragThreshold && currentUserIndex < allUsersData.length - 1) { // Swipe para Esquerda (Avançar)
+                            storyContentWrapper.style.transform = 'translateX(-100%)';
+                            setTimeout(nextUser, 300); // Carrega o próximo usuário após a animação
+                        } 
+                        else { // Arraste falhou (não foi longe o suficiente)
+                            storyContentWrapper.style.transform = 'translateX(0px)';
+                            resumeStory(); // Volta ao normal
+                        }
+
+                    } 
+                    // CASO 2: FOI UM TOQUE RÁPIDO (SEM ARRASTAR)
+                    else if (pressDuration < 200) {
+                        storyContentWrapper.style.transform = 'translateX(0px)'; // Garante que volte ao centro
+                        
+                        const rect = storyContainer.getBoundingClientRect();
+                        // Pega a posição X do clique (dragStartX é o ponto inicial do toque)
+                        const tapPosition = (dragStartX - rect.left) / rect.width;
+
+                        if (tapPosition < 0.33) {
+                            prevStory();
+                        } else {
+                            nextStory();
+                        }
+                    } 
+                    // CASO 3: FOI UM "SEGURAR" (SEM ARRASTAR)
+                    else {
+                        storyContentWrapper.style.transform = 'translateX(0px)';
+                        resumeStory(); // Apenas retoma o story
+                    }
+                }
+                
+                // Reseta as variáveis de arraste
+                dragStartX = 0;
+                dragDeltaX = 0;
+                isDragging = false;
+            }
+            
+            /**
+             * Inicializa o visualizador
+             */
+            function init() {
+                // Adiciona listeners para a barra de interação
+                likeButton.addEventListener('click', toggleLike);
+                commentBar.addEventListener('mousedown', stopPropagation);
+                commentBar.addEventListener('touchstart', stopPropagation, { passive: true });
+                likeButton.addEventListener('mousedown', stopPropagation);
+                likeButton.addEventListener('touchstart', stopPropagation, { passive: true });
+                sendButton.addEventListener('mousedown', stopPropagation);
+                sendButton.addEventListener('touchstart', stopPropagation, { passive: true });
+                sendButton.addEventListener('click', (e) => {
+                    stopPropagation(e);
+                    console.log('Botão Enviar clicado');
+                });
+
+                // Adiciona os event listeners de navegação (agora para o arraste)
+                storyContainer.addEventListener('mousedown', onDragStart);
+                storyContainer.addEventListener('touchstart', onDragStart, { passive: false });
+
+                // --- INICIA TUDO ---
+                loadUserStories(0, 0);
+            }
+
             init();
         });
     </script>
 
 </body>
-
 </html>
