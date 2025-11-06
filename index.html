@@ -318,6 +318,11 @@
             // --- NOVOS HANDLERS DE EVENTO (Lógica de Toque/Arraste/Segurar) ---
 
             function onDragStart(e) {
+                // MUDANÇA: Previne a emulação do 'mousedown' que causa o "pulo" no celular.
+                if (e.type === 'touchstart') {
+                    e.preventDefault();
+                }
+
                 pauseStory(); // Sempre pausa ao tocar
                 
                 dragStartX = e.clientX || e.touches[0].clientX;
@@ -332,7 +337,8 @@
                 window.addEventListener('mouseup', onDragEnd);
                 
                 window.addEventListener('touchmove', onDragMove, { passive: false });
-                window.addEventListener('touchend', onDragEnd);
+                // MUDANÇA: Adiciona { passive: false } para permitir o preventDefault() no 'touchend'
+                window.addEventListener('touchend', onDragEnd, { passive: false });
             }
 
             function onDragMove(e) {
@@ -348,6 +354,11 @@
             }
 
             function onDragEnd(e) {
+                // MUDANÇA: Previne a emulação do 'mouseup' que causa o "pulo" no celular.
+                if (e.type === 'touchend') {
+                    e.preventDefault();
+                }
+
                 // Remove os listeners da janela
                 window.removeEventListener('mousemove', onDragMove);
                 window.removeEventListener('mouseup', onDragEnd);
